@@ -64,7 +64,7 @@ function App() {
 
   return (
     <div className='container'>
-      <h1>Your diagram</h1>
+      <h1>Simple Sketch</h1>
 
       <div style={{
         position: 'absolute',
