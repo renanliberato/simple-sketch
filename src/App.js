@@ -3,7 +3,7 @@ import './App.css';
 
 function App() {
   const [tool, setTool] = useState(null);
-  const [color, setColor] = useState(null);
+  const [color, setColor] = useState('#000000');
   const [diagram, setDiagram] = useState([]);
   const [creatingDiagram, setCreatingDiagram] = useState(null);
   const [mousePos, setMousePos] = useState(null);
@@ -107,27 +107,13 @@ function App() {
         alignItems: 'center'
       }}>
         <span>Colors</span>
-        <button
-          onClick={() => setColor('red')}
+        <input type='color'
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
           style={{
-            borderWidth: 3,
-            borderColor: color == 'red' ? 'white' : 'red',
-            borderRadius: 15,
-            backgroundColor: 'red',
             width: 30,
             height: 30,
-          }}></button>
-        <button
-          onClick={() => setColor('blue')}
-          style={{
-            marginTop: 10,
-            borderWidth: 3,
-            borderColor: color == 'blue' ? 'white' : 'blue',
-            borderRadius: 15,
-            backgroundColor: 'blue',
-            width: 30,
-            height: 30,
-          }}></button>
+          }} />
       </div>
       <div className='diagram-container'>
         {renderCreatingObject(creatingDiagram)}
