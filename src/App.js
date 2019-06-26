@@ -1,130 +1,57 @@
 import React, {useEffect, useState} from 'react';
+import uuid from 'uuid/v4';
 import './App.css';
+import { useDiagramEvents } from './diagram';
+import { Tools } from './Tools';
+import { Colors } from './Colors';
+import { ItemConfiguration } from './ItemConfiguration';
 
 function App() {
-  const [tool, setTool] = useState(null);
+  const [tool, setTool] = useState('square');
   const [color, setColor] = useState('#000000');
   const [diagram, setDiagram] = useState([]);
   const [creatingDiagram, setCreatingDiagram] = useState(null);
   const [mousePos, setMousePos] = useState(null);
   
-  useEffect(() => {
-    var containerElement = document.getElementsByClassName('diagram-container')[0];
-    var mouseEnterSub = containerElement.onmousedown = function(e) {
-      if (e.target != containerElement) {
-        return
-      }
+  const onElementClick = (id) => setDiagram(diagram.map(i => ({
+    ...i,
+    selected: i.id == id
+  })))
 
-      setMousePos({
-        xStart: e.pageX,
-        yStart: e.pageY
-      })
-    }
-    
-    var mouseMoveSub = containerElement.onmousemove = function(e) {
-      if (mousePos) {
-        setCreatingDiagram({
-          type: tool,
-          x: mousePos.xStart,
-          y: mousePos.yStart,
-          height: e.pageY - mousePos.yStart,
-          width: e.pageX - mousePos.xStart,
-          backgroundColor: color
-        })
-      }
+  useDiagramEvents(mousePos, setMousePos, tool, color, diagram, setDiagram, setCreatingDiagram, onElementClick)
+  
+
+  const selectedItem = diagram.find(i => i.selected)
+
+  const updateSelectedItem = (update) => setDiagram(diagram.map(i => {
+    if (i.id == selectedItem.id) {
+      return update(i)
     }
 
-    var mouseLeaveSub = containerElement.onmouseup = function(e) {
-      if (!mousePos || e.pageX - mousePos.xStart < 50) {
-        return
-      }
-      setDiagram([
-        ...diagram,
-        {
-          type: tool,
-          x: mousePos.xStart,
-          y: mousePos.yStart,
-          height: e.pageY - mousePos.yStart,
-          width: e.pageX - mousePos.xStart,
-          backgroundColor: color
-        }
-      ])
-      setCreatingDiagram(null)
-      setMousePos(null)
-    }
+    return i
+  }))
 
-    return () => {
-      mouseEnterSub = null;
-      mouseMoveSub = null;
-      mouseLeaveSub = null;
-    }
-  })
-
-  console.log(diagram);
+  const deleteElement = id => setDiagram(diagram.filter(i => i.id != id))
 
   return (
     <div className='container'>
       <h1>Simple Sketch</h1>
 
-      <div style={{
-        position: 'absolute',
-        top: 100,
-        left: 30,
-        width: 50,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <span>Elements</span>
-        <button
-          onClick={() => setTool('square')}
-          style={{
-            border: '1px solid black',
-            backgroundColor: tool == 'square' ? 'lightgray' : 'white',
-            width: 50,
-            height: 30,
-          }}>
-          Square
-        </button>
-        <button
-          onClick={() => setTool('circle')}
-          style={{
-            border: '1px solid black',
-            backgroundColor: tool == 'circle' ? 'lightgray' : 'white',
-            marginTop: 10,
-            width: 50,
-            height: 30,
-          }}>
-          Circle
-        </button>
-      </div>
-      <div style={{
-        position: 'absolute',
-        top: 210,
-        left: 30,
-        width: 50,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-      }}>
-        <span>Colors</span>
-        <input type='color'
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          style={{
-            width: 30,
-            height: 30,
-          }} />
-      </div>
+      <Tools tool={tool} setTool={setTool} />
+      <Colors color={color} setColor={setColor} />
       <div className='diagram-container'>
         {renderCreatingObject(creatingDiagram)}
         {diagram.map(item => {
           switch (item.type) {
             case 'square':
-              return createSquare(item)
+              return createSquare(item, onElementClick)
             case 'circle':
-              return createCircle(item)
+              return createCircle(item, onElementClick)
+            case 'line':
+              return createLine(item, onElementClick)
           }
         })}
+        <ItemConfiguration selectedItem={selectedItem} updateSelectedItem={updateSelectedItem} deleteElement={deleteElement} />
       </div>
     </div>
   );
@@ -140,35 +67,66 @@ function renderCreatingObject(item) {
       return createSquare(item)
     case 'circle':
       return createCircle(item)
+    case 'line':
+      return createLine(item)
   }
 }
 
-function createSquare(item) {
+function createSquare(item, onElementClick) {
   return (
-    <div key={`x${item.x}y${item.y}`} style={{
-      height: item.height,
-      width: item.width,
-      backgroundColor: item.backgroundColor,
-      position: 'absolute',
-      top: item.y,
-      left: item.x
-    }}>
-    </div>
+    <div onClick={() => onElementClick(item.id)}
+      key={item.id}
+      className={'diagram-element'}
+      style={{
+        height: item.height,
+        width: item.width,
+        borderWidth: item.selected ? 3 : 0,
+        borderStyle: 'solid',
+        borderColor: '#ccc',
+        backgroundColor: item.backgroundColor,
+        position: 'absolute',
+        top: item.selected ? item.y - 3 : item.y,
+        left: item.selected ? item.x - 3 : item.x
+      }}></div>
   )
 }
 
-function createCircle(item) {
+function createCircle(item, onElementClick) {
   return (
-    <div key={`x${item.x}y${item.y}`} style={{
-      borderRadius: item.height / 2,
-      height: item.height,
-      width: item.height,
-      backgroundColor: item.backgroundColor,
-      position: 'absolute',
-      top: item.y,
-      left: item.x,
-    }}>
-    </div>
+    <div onClick={() => onElementClick(item.id)}
+      key={item.id}
+      className={'diagram-element'}
+      style={{
+        borderRadius: item.height / 2,
+        borderWidth: item.selected ? 3 : 0,
+        borderStyle: 'solid',
+        borderColor: '#ccc',
+        height: item.height,
+        width: item.height,
+        backgroundColor: item.backgroundColor,
+        position: 'absolute',
+        top: item.selected ? item.y - 3 : item.y,
+        left: item.selected ? item.x - 3 : item.x
+      }}></div>
+  )
+}
+
+function createLine(item, onElementClick) {
+  return (
+    <div onClick={() => onElementClick(item.id)}
+      key={item.id}
+      className={'diagram-element'}
+      style={{
+        height: item.height,
+        width: item.width,
+        borderWidth: item.selected ? 3 : 0,
+        borderStyle: 'solid',
+        borderColor: '#ccc',
+        backgroundColor: item.backgroundColor,
+        position: 'absolute',
+        top: item.selected ? item.y - 3 : item.y,
+        left: item.selected ? item.x - 3 : item.x
+      }}></div>
   )
 }
 
