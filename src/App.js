@@ -5,6 +5,7 @@ import { useDiagramEvents } from './diagram';
 import { Tools } from './Tools';
 import { Colors } from './Colors';
 import { ItemConfiguration } from './ItemConfiguration';
+import { Line, Circle, Square } from './elements';
 
 function App() {
   const [tool, setTool] = useState('square');
@@ -44,11 +45,11 @@ function App() {
         {diagram.map(item => {
           switch (item.type) {
             case 'square':
-              return createSquare(item, onElementClick)
+              return <Square key={item.id} item={item} onElementClick={onElementClick} />
             case 'circle':
-              return createCircle(item, onElementClick)
+                return <Circle key={item.id} item={item} onElementClick={onElementClick} />
             case 'line':
-              return createLine(item, onElementClick)
+                return <Line key={item.id} item={item} onElementClick={onElementClick} />
           }
         })}
         <ItemConfiguration selectedItem={selectedItem} updateSelectedItem={updateSelectedItem} deleteElement={deleteElement} />
@@ -64,70 +65,12 @@ function renderCreatingObject(item) {
 
   switch (item.type) {
     case 'square':
-      return createSquare(item)
+      return <Square key={item.id} item={item}/>
     case 'circle':
-      return createCircle(item)
+      return <Circle key={item.id} item={item}/>
     case 'line':
-      return createLine(item)
+      return <Line key={item.id} item={item}/>
   }
-}
-
-function createSquare(item, onElementClick) {
-  return (
-    <div onClick={() => onElementClick(item.id)}
-      key={item.id}
-      className={'diagram-element'}
-      style={{
-        height: item.height,
-        width: item.width,
-        borderWidth: item.selected ? 3 : 0,
-        borderStyle: 'solid',
-        borderColor: '#ccc',
-        backgroundColor: item.backgroundColor,
-        position: 'absolute',
-        top: item.selected ? item.y - 3 : item.y,
-        left: item.selected ? item.x - 3 : item.x
-      }}></div>
-  )
-}
-
-function createCircle(item, onElementClick) {
-  return (
-    <div onClick={() => onElementClick(item.id)}
-      key={item.id}
-      className={'diagram-element'}
-      style={{
-        borderRadius: item.height / 2,
-        borderWidth: item.selected ? 3 : 0,
-        borderStyle: 'solid',
-        borderColor: '#ccc',
-        height: item.height,
-        width: item.height,
-        backgroundColor: item.backgroundColor,
-        position: 'absolute',
-        top: item.selected ? item.y - 3 : item.y,
-        left: item.selected ? item.x - 3 : item.x
-      }}></div>
-  )
-}
-
-function createLine(item, onElementClick) {
-  return (
-    <div onClick={() => onElementClick(item.id)}
-      key={item.id}
-      className={'diagram-element'}
-      style={{
-        height: item.height,
-        width: item.width,
-        borderWidth: item.selected ? 3 : 0,
-        borderStyle: 'solid',
-        borderColor: '#ccc',
-        backgroundColor: item.backgroundColor,
-        position: 'absolute',
-        top: item.selected ? item.y - 3 : item.y,
-        left: item.selected ? item.x - 3 : item.x
-      }}></div>
-  )
 }
 
 export default App;
