@@ -1,17 +1,17 @@
 import uuid from 'uuid/v4'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export const useDiagramEvents = (mousePos, setMousePos, tool, color, diagram, setDiagram, setCreatingDiagram, onElementClick) => {
   useEffect(() => {
-    var containerElement = document.getElementsByClassName('diagram-container')[0];
+    var containerElement = document.getElementsByClassName('diagram')[0];
     var mouseEnterSub = containerElement.onmousedown = function(e) {
       if (e.target != containerElement) {
         return
       }
 
       setMousePos({
-        xStart: e.pageX,
-        yStart: e.pageY
+        xStart: e.offsetX,
+        yStart: e.offsetY
       })
     }
     
@@ -24,30 +24,20 @@ export const useDiagramEvents = (mousePos, setMousePos, tool, color, diagram, se
         type: tool,
         x: mousePos.xStart,
         y: mousePos.yStart,
-        height: e.pageY - mousePos.yStart,
-        width: e.pageX - mousePos.xStart,
+        height: Math.abs(e.offsetY - mousePos.yStart),
+        width: Math.abs(e.offsetX - mousePos.xStart),
         backgroundColor: color
-      }
-
-      if (tool == 'line') {
-        const isVertical = element.height > element.width;
-        element = {
-          ...element,
-          height: isVertical ? element.height : 3,
-          width: isVertical ? 3 : element.width,
-        }
       }
 
       setCreatingDiagram(element)
     }
 
     var mouseLeaveSub = containerElement.onmouseup = function(e) {
-      
-      if (e.target.className == 'diagram-container') {
+      if (e.target.className == 'diagram') {
         onElementClick(null)
       }
 
-      if (!mousePos || (e.pageX - mousePos.xStart < 50 && e.pageY - mousePos.yStart < 50)) {
+      if (!mousePos || (Math.abs(e.offsetX - mousePos.xStart) < 50 && Math.abs(e.offsetY - mousePos.yStart < 50))) {
         return
       }
 
@@ -56,27 +46,15 @@ export const useDiagramEvents = (mousePos, setMousePos, tool, color, diagram, se
         type: tool,
         x: mousePos.xStart,
         y: mousePos.yStart,
-        height: e.pageY - mousePos.yStart,
-        width: e.pageX - mousePos.xStart,
+        height: Math.abs(e.offsetY - mousePos.yStart),
+        width: Math.abs(e.offsetX - mousePos.xStart),
         backgroundColor: color
       };
 
-      if (tool == 'line') {
-        const isVertical = element.height > element.width;
-        setDiagram([
-          ...diagram,
-          {
-            ...element,
-            height: isVertical ? element.height : 3,
-            width: isVertical ? 3 : element.width,
-          }
-        ])
-      } else {
-        setDiagram([
-          ...diagram,
-          element
-        ])
-      }
+      setDiagram([
+        ...diagram,
+        element
+      ])
       setCreatingDiagram(null)
       setMousePos(null)
     }
@@ -87,4 +65,16 @@ export const useDiagramEvents = (mousePos, setMousePos, tool, color, diagram, se
       mouseLeaveSub = null;
     }
   })
+}
+
+export function useDiagram() {
+  var localDiagram = JSON.parse(localStorage.getItem('diagram'));
+  const [diagram, setDiagram] = useState(localDiagram ? localDiagram : []);
+
+  const setDiagramAndSave = newDiagram => {
+    setDiagram(newDiagram)
+    localStorage.setItem('diagram', JSON.stringify(newDiagram))
+  };
+
+  return [diagram, setDiagramAndSave]
 }

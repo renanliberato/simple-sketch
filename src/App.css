@@ -16,4 +16,10 @@
   background-color: white;
   margin-left: 80px;
   flex-grow: 1;
+  overflow: scroll;
+}
+
+.diagram {
+  height: 20000px;
+  width: 20000px;
 }
